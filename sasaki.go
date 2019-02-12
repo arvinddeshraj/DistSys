@@ -1,3 +1,6 @@
+// Golang Implementation of Sasaki's Time Optimal N-1 Round Algorithm
+// Arvind Deshraj
+
 package main
 
 import (
@@ -7,17 +10,27 @@ import (
 	"time"
 )
 
+// Block is a wrapper around the list value to track the marked values
 type Block struct {
 	val      int
 	ismarked bool
 }
 
+// Process is the main component of the list.
+// Each Process contains a single block as well as
+// a area variable that is used for solution selection
 type Process struct {
 	value Block
 	area  int
 }
 
-func init_list(proc []Process, order int) {
+// InitList is a function used to initialise the list
+// to one of the following cases:
+// 1. Worst Case (Reverse Order)
+// 2. Random Initialisation
+// 3. Best Case (Sorted Order)
+// Also initialises the area variable to zero (except for first element)
+func InitList(proc []Process, order int) {
 	n := len(proc)
 	for i := 0; i < len(proc); i++ {
 		if order == 1 {
@@ -41,7 +54,8 @@ func init_list(proc []Process, order int) {
 	}
 }
 
-func display_current(proc []Process) {
+// utility function to display the current state of each process
+func DisplayCurrent(proc []Process) {
 	for _, v := range proc {
 		if v.value.ismarked == true {
 			fmt.Print(v.value.val, "*\t")
@@ -52,6 +66,9 @@ func display_current(proc []Process) {
 	fmt.Println()
 }
 
+// SendAndReceive is a function used to simulate the send and receive operations
+// that would occur in a distributed system. It also changes the area variables based 
+// on the movement of the marked numbers.
 func SendAndReceive(proc []Process, i int) {
 	var temp Block
 	if proc[i].value.val > proc[i+1].value.val {
@@ -63,13 +80,15 @@ func SendAndReceive(proc []Process, i int) {
 			proc[i+1].area += 1
 			proc[i+1].area -= 1
 		}
-		temp = proc[i].value //.value.val
+		temp = proc[i].value 
 		proc[i].value = proc[i+1].value
 		proc[i+1].value = temp
 	}
 }
 
-func sortNeighbours(proc []Process, i int) {
+// SortNeighbours is used to order the values in the middle processes
+// (processes other than the first and last)
+func SortNeighbours(proc []Process, i int) {
 	var temp Block
 	if proc[i].value.val > proc[i+1].value.val {
 		temp = proc[i].value
@@ -77,7 +96,10 @@ func sortNeighbours(proc []Process, i int) {
 		proc[i+1].value = temp
 	}
 }
-func solutionSelection(proc []Process) {
+
+// SolutionSelection is a function to select the left or right value for the final solution
+// after n-1 rounds.
+func SolutionSelection(proc []Process) {
 	fmt.Print(proc[0].value.val, "\t")
 	for i := 1; i < len(proc)-1; i += 2 {
 		if proc[i].area == -1 {
@@ -93,11 +115,13 @@ func solutionSelection(proc []Process) {
 
 func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
-	var wg sync.WaitGroup
+	var wg sync.WaitGroup // wg is used to wait for go routines
+	// It ensures that sorting of intermeditate processes' values
+	// happens only after all goroutines finish their swaps
 	n := rand.Intn(100) + 1
 	processes := make([]Process, 2*n-2)
-	init_list(processes, 2)
-	display_current(processes)
+	InitList(processes, 2)
+	DisplayCurrent(processes)
 	for i := 0; i < n-1; i++ {
 		for j, _ := range processes {
 			if j%2 == 1 {
@@ -115,15 +139,15 @@ func main() {
 			if j%2 == 1 && j != len(processes)-1 {
 				wg.Add(1)
 				go func(processes []Process, j int) {
-					sortNeighbours(processes, j)
+					SortNeighbours(processes, j)
 					wg.Done()
 				}(processes, j)
 			}
 		}
 		wg.Wait()
 		fmt.Println("The list after Round:", i)
-		display_current(processes)
+		DisplayCurrent(processes)
 	}
 	fmt.Println("The final solution is:")
-	solutionSelection(processes)
+	SolutionSelection(processes)
 }
