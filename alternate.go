@@ -1,3 +1,5 @@
+// Golang Implementation of an Alternate N-1 Round Algorithm for distributed sorting on a line network
+// Arvind Deshraj 
 package main
 
 import (
@@ -8,6 +10,11 @@ import (
 	"time"
 )
 
+// Process is the main component in the list.
+// Each Process contains the value stored in that process,
+// a modIndex (index % 3).
+// Also contains space for two more values - the values sent to
+// the process from the neighbouring processes
 type Process struct {
 	procVal      int
 	rightRecvVal int
@@ -15,7 +22,12 @@ type Process struct {
 	modIndex     int
 }
 
-func init_list(proc []Process, order int) {
+// InitList is a function used to initialise the list
+// to one of the following cases:
+// 1. Worst Case (Reverse Order)
+// 2. Random Initialisation
+// 3. Best Case (Sorted Order)
+func InitList(proc []Process, order int) {
 	for i, _ := range proc {
 		proc[i].modIndex = i % 3
 		if order == 1 {
@@ -30,12 +42,16 @@ func init_list(proc []Process, order int) {
 	}
 }
 
-func increment_index(proc []Process) {
+// IncrementIndex is a function used to increment the modIndex
+// of all the processes at the end of a round.
+func IncrementIndex(proc []Process) {
 	for i, _ := range proc {
 		proc[i].modIndex = (proc[i].modIndex + 2) % 3
 	}
 }
-func minInt(a, b, c int) int {
+
+// Utility function to find min of three numbers
+func MinInt(a, b, c int) int {
 	if a < b && a < c {
 		return a
 	} else if b < a && b < c {
@@ -45,7 +61,8 @@ func minInt(a, b, c int) int {
 	}
 }
 
-func maxInt(a, b, c int) int {
+// Utility function to find max of three numbers
+func MaxInt(a, b, c int) int {
 	if a > b && a > c {
 		return a
 	} else if b > a && b > c {
@@ -55,7 +72,9 @@ func maxInt(a, b, c int) int {
 	}
 }
 
-func alt_sort(proc []Process, i int) {
+// AltSort is a function that receives the values from its neighbours
+// and then sends the respective max and min values to the respective neghbours
+func AltSort(proc []Process, i int) {
 	var left_avail bool
 	var right_avail bool
 	var max_val, min_val int
@@ -71,29 +90,30 @@ func alt_sort(proc []Process, i int) {
 	}
 
 	if left_avail == true && right_avail == true {
-		max_val = maxInt(proc[i].leftRecvVal, proc[i].rightRecvVal, proc[i].procVal)
-		min_val = minInt(proc[i].leftRecvVal, proc[i].rightRecvVal, proc[i].procVal)
+		max_val = MaxInt(proc[i].leftRecvVal, proc[i].rightRecvVal, proc[i].procVal)
+		min_val = MinInt(proc[i].leftRecvVal, proc[i].rightRecvVal, proc[i].procVal)
 		proc[i].procVal = proc[i].leftRecvVal + proc[i].rightRecvVal + proc[i].procVal - max_val - min_val
 		proc[i-1].procVal = min_val
 		proc[i+1].procVal = max_val
 	}
 
 	if left_avail == true && right_avail == false {
-		max_val = maxInt(proc[i].leftRecvVal, proc[i].procVal, math.MinInt64)
-		min_val = minInt(proc[i].leftRecvVal, proc[i].procVal, math.MaxInt64)
+		max_val = MaxInt(proc[i].leftRecvVal, proc[i].procVal, math.MinInt64)
+		min_val = MinInt(proc[i].leftRecvVal, proc[i].procVal, math.MaxInt64)
 		proc[i-1].procVal = min_val
 		proc[i].procVal = max_val
 	}
 
 	if left_avail == false && right_avail == true {
-		max_val = maxInt(proc[i].rightRecvVal, proc[i].procVal, math.MinInt64)
-		min_val = minInt(proc[i].rightRecvVal, proc[i].procVal, math.MaxInt64)
+		max_val = MaxInt(proc[i].rightRecvVal, proc[i].procVal, math.MinInt64)
+		min_val = MinInt(proc[i].rightRecvVal, proc[i].procVal, math.MaxInt64)
 		proc[i].procVal = min_val
 		proc[i+1].procVal = max_val
 	}
 }
 
-func display_current(proc []Process) {
+// utility function to display the current state of each process
+func DisplayCurrent(proc []Process) {
 	for _, v := range proc {
 		fmt.Print(v.procVal, "\t")
 	}
@@ -106,8 +126,8 @@ func main() {
 	n := rand.Intn(100) + 1
 	processes := make([]Process, n)
 
-	init_list(processes, 1)
-	display_current(processes)
+	InitList(processes, 1)
+	DisplayCurrent(processes)
 
 	for i := 0; i < n-1; i++ {
 		for j, _ := range processes {
@@ -118,14 +138,14 @@ func main() {
 			} else {
 				wg.Add(1)
 				go func(processes []Process, j int) {
-					alt_sort(processes, j)
+					AltSort(processes, j)
 					wg.Done()
 				}(processes, j)
 			}
 		}
 		wg.Wait()
-		increment_index(processes)
+		IncrementIndex(processes)
 		fmt.Println("The list after round ", i)
-		display_current(processes)
+		DisplayCurrent(processes)
 	}
 }
