@@ -1,4 +1,4 @@
-// Golang Implementation of Sasaki's Time Optimal N-1 Round Algorithm
+// Multithreaded Golang Implementation of Sasaki's Time Optimal N-1 Round Algorithm
 // Arvind Deshraj
 
 package main

@@ -1,4 +1,4 @@
-// Golang Implementation of an Alternate N-1 Round Algorithm for distributed sorting on a line network
+// Multithreaded Golang Implementation of an Alternate N-1 Round Algorithm for distributed sorting on a line network
 // Arvind Deshraj 
 package main
 
