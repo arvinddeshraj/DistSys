@@ -55,16 +55,24 @@ func InitList(proc []Process, order int) {
 
 // utility function to display the current state of each process
 func DisplayCurrent(proc []Process) {
-	for _, v := range proc {
-		if v.leftvalue.ismarked == true {
-			fmt.Print(v.leftvalue.val, "*\t")
+	for i, v := range proc {
+		if i == 0  || i == len(proc) - 1{
+			if v.leftvalue.ismarked == true {
+				fmt.Print(v.leftvalue.val, "*\t")
+			} else {
+				fmt.Print(v.leftvalue.val, "\t")		
+			}
 		} else {
-			fmt.Print(v.leftvalue.val, "\t")
-		}
-		if v.rightvalue.ismarked == true {
-			fmt.Print(v.rightvalue.val, "*\t")
-		} else {
-			fmt.Print(v.rightvalue.val, "\t")
+			if v.leftvalue.ismarked == true  {
+				fmt.Print(v.leftvalue.val, "*\t")
+			} else {
+				fmt.Print(v.leftvalue.val, "\t")
+			}
+			if v.rightvalue.ismarked == true {
+				fmt.Print(v.rightvalue.val, "*\t")
+			} else {
+				fmt.Print(v.rightvalue.val, "\t")
+			}
 		}
 	}
 	fmt.Println()
