@@ -1,5 +1,5 @@
 // Multithreaded Golang Implementation of an Alternate N-1 Round Algorithm for distributed sorting on a line network
-// Arvind Deshraj 
+// Arvind Deshraj
 package main
 
 import (
@@ -72,22 +72,37 @@ func MaxInt(a, b, c int) int {
 	}
 }
 
-// AltSort is a function that receives the values from its neighbours
+func SendAndReceiveHandler(proc []Process, i int) (bool, int, bool, int) {
+	var left_avail, right_avail bool
+	var leftval, rightval int
+
+	if i-1 >= 0 {
+		left_avail = true
+		leftval = proc[i-1].procVal
+	} else {
+		left_avail = false
+		leftval = 0 // dummy value, won't be accessed if false
+	}
+
+	if i+1 < len(proc) {
+		right_avail = true
+		rightval = proc[i+1].procVal
+	} else {
+		right_avail = false
+		rightval = 0 // dummy value, won't be accessed if false
+	}
+
+	return left_avail, leftval, right_avail, rightval
+}
+
+// AltSort is a function that receives the values from SendAndReceiveHandler
 // and then sends the respective max and min values to the respective neghbours
 func AltSort(proc []Process, i int) {
 	var left_avail bool
 	var right_avail bool
 	var max_val, min_val int
 
-	if i-1 >= 0 {
-		left_avail = true
-		proc[i].leftRecvVal = proc[i-1].procVal
-	}
-
-	if i+1 < len(proc) {
-		right_avail = true
-		proc[i].rightRecvVal = proc[i+1].procVal
-	}
+	left_avail, proc[i].leftRecvVal, right_avail, proc[i].rightRecvVal = SendAndReceiveHandler(proc, i)
 
 	if left_avail == true && right_avail == true {
 		max_val = MaxInt(proc[i].leftRecvVal, proc[i].rightRecvVal, proc[i].procVal)
